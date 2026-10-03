@@ -76,6 +76,7 @@ if (process.env.BOOTSTRAP_ADMIN_EMAIL && process.env.BOOTSTRAP_ADMIN_PASSWORD) {
     env: { ...env, ADMIN_EMAIL: process.env.BOOTSTRAP_ADMIN_EMAIL, ADMIN_PASSWORD: process.env.BOOTSTRAP_ADMIN_PASSWORD, ADMIN_NAME: process.env.BOOTSTRAP_ADMIN_NAME ?? "Platform Admin", ONLY_IF_NONE: "1" },
     stdio: "inherit",
   });
-  if (r.status !== 0) process.exit(r.status ?? 1);
+  // Never block a deploy on this optional step (e.g. a too-short password): warn loudly and carry on.
+  if (r.status !== 0) console.warn("⚠ Platform admin was NOT created (see the message above). Fix BOOTSTRAP_ADMIN_EMAIL / BOOTSTRAP_ADMIN_PASSWORD (password needs 10+ characters) and redeploy.");
 }
 console.log("✓ database ready");
