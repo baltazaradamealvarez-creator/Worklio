@@ -88,9 +88,9 @@ export function FField({ label, name, hint, required, children, className }: { l
 
 // ─── Dialog / drawer ──────────────────────────────────────────────────────────────
 
-export function Dialog({ trigger, title, description, children, side = false, width = "max-w-lg", open: controlled, onOpenChange, triggerClassName }: { triggerClassName?: string; trigger?: ReactNode; title: string; description?: string; children: ReactNode; side?: boolean; width?: string; open?: boolean; onOpenChange?: (o: boolean) => void }) {
+export function Dialog({ trigger, title, description, children, side = false, width = "max-w-lg", open: controlled, onOpenChange, triggerClassName, defaultOpen }: { defaultOpen?: boolean; triggerClassName?: string; trigger?: ReactNode; title: string; description?: string; children: ReactNode; side?: boolean; width?: string; open?: boolean; onOpenChange?: (o: boolean) => void }) {
   const ref = useRef<HTMLDialogElement>(null);
-  const [internal, setInternal] = useState(false);
+  const [internal, setInternal] = useState(!!defaultOpen);
   const open = controlled ?? internal;
   const setOpen = (o: boolean) => (onOpenChange ? onOpenChange(o) : setInternal(o));
 

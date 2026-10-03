@@ -201,13 +201,13 @@ export function Avatar({ name, color, size = 28 }: { name: string; color?: strin
   );
 }
 
-export function Tabs({ tabs, active, basePath, param = "tab" }: { tabs: { key: string; label: string; count?: number }[]; active: string; basePath: string; param?: string }) {
+export function Tabs({ tabs, active, basePath, param = "tab", hrefFor }: { tabs: { key: string; label: string; count?: number }[]; active: string; basePath: string; param?: string; hrefFor?: (key: string) => string }) {
   return (
     <nav className="mb-5 flex gap-1 overflow-x-auto border-b border-line" aria-label="Sections">
       {tabs.map((t) => (
         <Link
           key={t.key}
-          href={t.key === tabs[0]!.key ? basePath : `${basePath}?${param}=${t.key}`}
+          href={hrefFor ? hrefFor(t.key) : t.key === tabs[0]!.key ? basePath : `${basePath}?${param}=${t.key}`}
           scroll={false}
           aria-current={active === t.key ? "page" : undefined}
           className={cn("-mb-px flex items-center gap-1.5 whitespace-nowrap border-b-2 px-3 py-2 text-[13px] font-medium transition-colors", active === t.key ? "border-primary text-primary" : "border-transparent text-fg-3 hover:text-fg")}
