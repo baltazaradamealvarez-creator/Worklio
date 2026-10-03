@@ -24,6 +24,8 @@ const PLATFORM_DB_ALLOWED = new Set([
   "server/domain/public-links.ts",
   "server/domain/payments.ts", // processor webhooks resolve the tenant from the verified event
   "server/domain/settings.ts", // public logo lookup
+  "server/domain/platform-settings.ts", // platform-admin settings (encrypted)
+  "server/domain/platform-admin.ts", // cross-company views for platform operators
 ]);
 
 describe("guard rails against bypassing tenant isolation", () => {

@@ -1930,3 +1930,14 @@ model SequenceCounter {
   @@id([tenantId, key])
   @@map("sequence_counters")
 }
+
+/// Platform-wide configuration managed by platform admins (e.g. the email provider key).
+/// Values are encrypted at rest with a key derived from APP_SECRET. Not tenant-scoped.
+model PlatformSetting {
+  key         String   @id
+  valueEnc    String
+  updatedAt   DateTime @updatedAt
+  updatedById String?
+
+  @@map("platform_settings")
+}

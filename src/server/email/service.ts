@@ -20,8 +20,9 @@ export async function loadBranding(db: Db, tenantId: string): Promise<Branding> 
   };
 }
 
-export function fromAddress(companyName: string): string {
-  const configured = env().EMAIL_FROM;
+export async function fromAddress(companyName: string): Promise<string> {
+  const { loadEmailSettings } = await import("@/server/domain/platform-settings");
+  const configured = (await loadEmailSettings()).from ?? env().EMAIL_FROM;
   const m = /<([^>]+)>/.exec(configured);
   const addr = m?.[1] ?? configured;
   return `${companyName.replace(/["<>]/g, "")} <${addr}>`;
@@ -45,7 +46,7 @@ export interface DeliverInput {
  * Throws AppError when delivery fails so callers don't mark documents as "sent".
  */
 export async function deliverEmail(db: Db, tenantId: string, input: DeliverInput): Promise<{ id: string }> {
-  const from = fromAddress(input.companyName);
+  const from = await fromAddress(input.companyName);
   const record = await db.emailMessage.create({
     data: {
       tenantId,
@@ -62,7 +63,7 @@ export async function deliverEmail(db: Db, tenantId: string, input: DeliverInput
     },
   });
   try {
-    const provider = getEmailProvider();
+    const provider = await getEmailProvider();
     const res = await provider.send({
       from,
       to: input.to,

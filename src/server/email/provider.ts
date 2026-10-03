@@ -1,5 +1,3 @@
-import { env } from "@/server/env";
-
 export interface OutboundEmail {
   from: string;
   to: string;
@@ -52,12 +50,13 @@ export function setEmailProvider(p: EmailProvider | undefined) {
   override = p;
 }
 
-export function getEmailProvider(): EmailProvider {
+export async function getEmailProvider(): Promise<EmailProvider> {
   if (override) return override;
-  const e = env();
-  if (e.EMAIL_PROVIDER === "resend") {
-    if (!e.RESEND_API_KEY) throw new Error("EMAIL_PROVIDER=resend requires RESEND_API_KEY");
-    return new ResendProvider(e.RESEND_API_KEY);
+  const { loadEmailSettings } = await import("@/server/domain/platform-settings");
+  const cfg = await loadEmailSettings();
+  if (cfg.provider === "resend") {
+    if (!cfg.apiKey) throw new Error("Email is set to Resend but no API key is configured");
+    return new ResendProvider(cfg.apiKey);
   }
   return new ConsoleProvider();
 }

@@ -311,7 +311,7 @@ export async function requestPasswordReset(emailInput: string, meta: { ip?: stri
   });
   const message = passwordResetEmail(platformBrand, { name: user.name, url: `${env().APP_URL}/reset-password/${token}` });
   try {
-    await getEmailProvider().send({ from: fromAddress("Worklio"), to: user.email, subject: message.subject, html: message.html, text: message.text });
+    await (await getEmailProvider()).send({ from: await fromAddress("Worklio"), to: user.email, subject: message.subject, html: message.html, text: message.text });
   } catch (err) {
     console.error("[auth] password reset email failed", err instanceof Error ? err.message : err);
   }
