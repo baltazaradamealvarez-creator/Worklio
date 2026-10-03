@@ -429,6 +429,11 @@ const PNG_DATA_URL = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/;
 export async function respondToPublicQuote(token: string, raw: unknown, meta: { ip?: string; userAgent?: string }) {
   const link = await resolvePublicLink(token, "QUOTE", meta);
   if (!link) throw notFound("Quote");
+  return respondWithLink(link, raw, meta);
+}
+
+/** Core of the customer response; `link.entityId` is the quote (from a quote link or a verified portal link). */
+export async function respondWithLink(link: ResolvedLink, raw: unknown, meta: { ip?: string; userAgent?: string }) {
   const input = parseInput(respondSchema, raw);
   const settings = await link.db.tenantSettings.findFirst({ where: {} });
   const result = await link.db.tx(async (tx) => {

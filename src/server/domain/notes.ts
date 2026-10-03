@@ -204,3 +204,9 @@ export async function noteHistory(ctx: Ctx, noteId: string) {
   await resolveEntity(ctx, note.entityType, note.entityId);
   return ctx.db.noteRevision.findMany({ where: { noteId }, orderBy: { createdAt: "desc" } });
 }
+
+/** People who can be @mentioned: active employees that have a login in this company. */
+export async function listMentionable(ctx: Ctx) {
+  const rows = await ctx.db.employee.findMany({ where: { deletedAt: null, membership: { status: "ACTIVE" } }, select: { firstName: true, lastName: true, membership: { select: { userId: true } } }, orderBy: { firstName: "asc" } });
+  return rows.filter((r) => r.membership).map((r) => ({ userId: r.membership!.userId, name: `${r.firstName} ${r.lastName}`.trim() }));
+}

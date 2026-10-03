@@ -389,3 +389,36 @@ export async function getInvoice(ctx: Ctx, id: string) {
 }
 
 void forbidden; void optDate;
+
+// ─── Customer-facing (token) ──────────────────────────────────────────────────────────
+
+import { touchPublicLink, type ResolvedLink } from "./public-links";
+import { auditAs, notifyWithPermission } from "./shared";
+import { loadBranding as loadBrandingForPublic } from "@/server/email/service";
+
+export async function loadPublicInvoice(link: ResolvedLink) {
+  const inv = await link.db.invoice.findFirst({
+    where: { id: link.entityId },
+    include: {
+      customer: { select: { displayName: true, email: true } },
+      location: { select: { name: true, addressLine1: true, addressLine2: true, city: true, state: true, postalCode: true } },
+      lineItems: { orderBy: { position: "asc" }, select: { id: true, name: true, description: true, quantity: true, unitPriceCents: true, discountType: true, discountValue: true, totalCents: true } },
+      payments: { where: { status: "SUCCEEDED" }, orderBy: { receivedAt: "asc" }, select: { id: true, amountCents: true, method: true, receivedAt: true, reference: true } },
+    },
+  });
+  if (!inv || inv.status === "DRAFT") return null;
+  const [brand, settings] = await Promise.all([loadBrandingForPublic(link.db, link.tenantId), link.db.tenantSettings.findFirst({ where: {} })]);
+  return { invoice: inv, brand, currency: settings?.currency ?? "USD", timezone: settings?.timezone ?? "America/Chicago", footer: settings?.invoiceFooter ?? null };
+}
+
+export async function recordInvoiceView(link: ResolvedLink, meta: { ip?: string; userAgent?: string }) {
+  await touchPublicLink(link);
+  const inv = await link.db.invoice.findFirst({ where: { id: link.entityId }, include: { customer: { select: { displayName: true } } } });
+  if (!inv || !["OPEN", "SENT"].includes(inv.status)) return;
+  await link.db.tx(async (tx) => {
+    await tx.invoice.update({ where: { id: inv.id }, data: { status: "VIEWED", viewedAt: inv.viewedAt ?? new Date() } });
+    await recordActivity(tx, link.tenantId, null, { customerId: inv.customerId, entityType: "INVOICE", entityId: inv.id, type: "invoice.viewed", summary: `${inv.customer.displayName} viewed invoice ${inv.number}`, actor: { type: "CUSTOMER", name: inv.customer.displayName } });
+    await auditAs(tx, link.tenantId, { name: inv.customer.displayName }, "invoice.viewed", "Invoice", inv.id, undefined, meta);
+    void notifyWithPermission;
+  });
+}

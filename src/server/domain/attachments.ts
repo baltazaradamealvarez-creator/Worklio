@@ -120,3 +120,11 @@ export async function deleteAttachment(ctx: Ctx, attachmentId: string): Promise<
   });
   // Object bytes are removed on a retention sweep; soft-deleted files are unreachable meanwhile.
 }
+
+/** Every file attached to the customer or to any of its locations, equipment, jobs, quotes, invoices… */
+export async function listCustomerAttachments(ctx: Ctx, customerId: string) {
+  requirePermission(ctx, "files.view");
+  await resolveEntity(ctx, "CUSTOMER", customerId);
+  const rows = await ctx.db.attachment.findMany({ where: { customerId, deletedAt: null, entityType: { not: "EMPLOYEE" } }, orderBy: { createdAt: "desc" }, take: 300 });
+  return can(ctx, "invoices.view") ? rows : rows.filter((r) => r.entityType !== "INVOICE" && r.entityType !== "PAYMENT");
+}

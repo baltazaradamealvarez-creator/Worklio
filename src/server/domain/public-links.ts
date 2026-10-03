@@ -79,3 +79,17 @@ export async function touchPublicLink(link: ResolvedLink): Promise<void> {
     data: { viewCount: { increment: 1 }, lastViewedAt: new Date(), ...(link.firstView ? { firstViewedAt: new Date() } : {}) },
   });
 }
+
+/**
+ * Resolve a link to a specific quote/invoice. Accepts either that document's own link, or a
+ * customer PORTAL link provided the document belongs to the portal's customer.
+ */
+export async function resolveDocumentLink(token: string, kind: "QUOTE" | "INVOICE", docId: string | undefined, client: { ip?: string }): Promise<ResolvedLink | null> {
+  if (!docId) return resolvePublicLink(token, kind, client);
+  const portal = await resolvePublicLink(token, "PORTAL", client);
+  if (!portal?.customerId) return null;
+  const owned = kind === "QUOTE"
+    ? await portal.db.quote.findFirst({ where: { id: docId, customerId: portal.customerId, deletedAt: null, status: { not: "DRAFT" } }, select: { id: true } })
+    : await portal.db.invoice.findFirst({ where: { id: docId, customerId: portal.customerId, status: { not: "DRAFT" } }, select: { id: true } });
+  return owned ? { ...portal, kind, entityId: docId } : null;
+}

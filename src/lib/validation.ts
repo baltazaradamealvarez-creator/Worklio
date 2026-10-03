@@ -137,3 +137,25 @@ export function formToObject(fd: FormData): Record<string, unknown> {
   }
   return out;
 }
+
+/** FormData with dotted keys (`customer.firstName`) → nested object; `lines[0].name` style supported. */
+export function formToNested(fd: FormData): Record<string, unknown> {
+  const flat = formToObject(fd);
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(flat)) {
+    const parts = key.split(/\.|\[(\d+)\]/).filter((p): p is string => !!p);
+    let cur: Record<string, unknown> | unknown[] = out;
+    parts.forEach((part, i) => {
+      const last = i === parts.length - 1;
+      const next = parts[i + 1];
+      const k: string | number = Array.isArray(cur) ? Number(part) : part;
+      if (last) (cur as Record<string | number, unknown>)[k] = value;
+      else {
+        const container = (cur as Record<string | number, unknown>)[k] ?? (/^\d+$/.test(next!) ? [] : {});
+        (cur as Record<string | number, unknown>)[k] = container;
+        cur = container as Record<string, unknown> | unknown[];
+      }
+    });
+  }
+  return out;
+}

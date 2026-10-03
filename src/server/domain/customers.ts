@@ -477,3 +477,10 @@ export async function customerTimeline(ctx: Ctx, customerId: string, opts: { tak
 }
 
 void forbidden;
+
+export async function listCustomerEmails(ctx: Ctx, customerId: string) {
+  requirePermission(ctx, "customers.view");
+  await assertCustomer(ctx, customerId);
+  const rows = await ctx.db.emailMessage.findMany({ where: { customerId }, orderBy: { createdAt: "desc" }, take: 100, select: { id: true, toEmail: true, subject: true, template: true, status: true, sentAt: true, createdAt: true, openedAt: true, error: true, entityType: true, entityId: true } });
+  return can(ctx, "invoices.view") ? rows : rows.filter((r) => r.entityType !== "INVOICE");
+}
