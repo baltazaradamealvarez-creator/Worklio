@@ -1,0 +1,1 @@
+export const PAYMENT_METHODS = [["CASH", "Cash"], ["CHECK", "Check"], ["CREDIT_CARD", "Credit card"], ["ACH", "ACH / bank transfer"], ["EXTERNAL", "External processor"], ["FINANCING", "Financing"], ["MANUAL", "Manual adjustment"], ["OTHER", "Other"]] as const;

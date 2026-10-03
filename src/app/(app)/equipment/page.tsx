@@ -10,6 +10,8 @@ import { parseListParams } from "@/server/domain/list";
 import { formatDateOnly, humanize } from "@/lib/format";
 import { pageCtx } from "@/server/page-context";
 
+const nowMs = () => Date.now();
+
 export const metadata: Metadata = { title: "Equipment" };
 
 export default async function EquipmentPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -18,9 +20,9 @@ export default async function EquipmentPage({ searchParams }: { searchParams: Pr
   const p = parseListParams(sp, { sortable: ["createdAt", "installDate", "type", "customer"], defaultSort: "createdAt", filters: ["type", "condition", "warranty", "customer"] });
   const page = await listEquipment(ctx, p);
   type Row = (typeof page.rows)[number];
-  const soon = Date.now() + 90 * 86_400_000;
+  const soon = nowMs() + 90 * 86_400_000;
   const warranty = (r: Row) => {
-    const d = [r.warrantyExpiresAt, r.equipmentWarrantyExpiresAt, r.laborWarrantyExpiresAt].filter((x): x is Date => !!x).sort((a, b) => a.getTime() - b.getTime()).find((x) => x.getTime() > Date.now());
+    const d = [r.warrantyExpiresAt, r.equipmentWarrantyExpiresAt, r.laborWarrantyExpiresAt].filter((x): x is Date => !!x).sort((a, b) => a.getTime() - b.getTime()).find((x) => x.getTime() > nowMs());
     if (!d) return <span className="text-fg-3">Expired / none</span>;
     return <span className={d.getTime() < soon ? "font-medium text-warn" : ""}>{formatDateOnly(d)}</span>;
   };

@@ -1,7 +1,7 @@
 import { FField } from "@/components/ui/client";
 import { Checkbox, Input, Select, Textarea } from "@/components/ui/primitives";
 import { bpToPercentInput } from "@/lib/money";
-import { PAYMENT_METHODS } from "@/components/documents/invoice-actions";
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 import { WEEKDAYS } from "@/server/domain/settings";
 import type { TenantSettings } from "@prisma/client";
 
@@ -39,7 +39,7 @@ export function BrandingFields({ s, tenantId }: { s: TenantSettings; tenantId: s
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-end gap-6">
-        {s.logoKey && /* eslint-disable-next-line @next/next/no-img-element */ <img src={`/api/branding/${tenantId}/logo?v=${s.updatedAt.getTime()}`} alt="Current logo" className="h-14 max-w-[180px] rounded border border-line bg-white object-contain p-1" />}
+        {s.logoKey &&   <img src={`/api/branding/${tenantId}/logo?v=${s.updatedAt.getTime()}`} alt="Current logo" className="h-14 max-w-[180px] rounded border border-line bg-white object-contain p-1" />}
         <FField label="Logo" name="logo" hint="PNG, JPG or WebP under 2 MB. Shown on quotes, invoices and emails."><input name="logo" type="file" accept="image/png,image/jpeg,image/webp" className="block text-[13px] file:mr-3 file:rounded-md file:border file:border-line-strong file:bg-surface file:px-3 file:py-1.5 file:text-[13px] file:font-medium" /></FField>
         <FField label="Brand color" name="brandColor"><input name="brandColor" type="color" defaultValue={s.brandColor} className="h-9 w-14 cursor-pointer rounded border border-line-strong bg-surface p-1" /></FField>
       </div>
@@ -64,7 +64,7 @@ export function OperationsFields({ s }: { s: TenantSettings }) {
           return (
             <div key={d} className="flex flex-wrap items-center gap-3 text-[13px]">
               <label className="flex w-32 items-center gap-2"><input type="checkbox" name={`${d}_on`} defaultChecked={h ? !h.closed : !weekend} className="h-4 w-4 rounded border-line-strong accent-primary" />{DAY[d]}</label>
-              <Input name={`${d}_open`} type="time" defaultValue={h?.open ?? "08:00"} className="w-28" /><span className="text-fg-3">to</span><Input name={`${d}_close`} type="time" defaultValue={h?.close ?? "17:00"} className="w-28" />
+              <Input name={`${d}_open`} type="time" defaultValue={h?.open ?? "08:00"} className="w-32" /><span className="text-fg-3">to</span><Input name={`${d}_close`} type="time" defaultValue={h?.close ?? "17:00"} className="w-32" />
             </div>);
         })}</div>
       </div>

@@ -39,9 +39,9 @@ export default async function LeadsPage({ searchParams }: { searchParams: Promis
         <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-4 lg:-mx-8 lg:px-8">
           {columns.map((col) => (
             <section key={col.status} aria-label={humanize(col.status)} className="w-64 shrink-0">
-              <header className="mb-2 flex items-center justify-between px-1">
-                <h2 className="text-xs font-semibold uppercase tracking-wide text-fg-3">{humanize(col.status)}</h2>
-                <span className="text-xs text-fg-3 tabular">{col.leads.length} · <Money cents={col.leads.reduce((s, l) => s + l.estimatedValueCents, 0)} currency={currency} /></span>
+              <header className="mb-2 px-1">
+                <h2 className="truncate text-xs font-semibold uppercase tracking-wide text-fg-3">{humanize(col.status)}</h2>
+                <div className="text-xs text-fg-3 tabular">{col.leads.length} lead{col.leads.length === 1 ? "" : "s"} · <Money cents={col.leads.reduce((s, l) => s + l.estimatedValueCents, 0)} currency={currency} /></div>
               </header>
               <div className="space-y-2 rounded-lg bg-surface-2/70 p-2">
                 {col.leads.length === 0 && <p className="px-2 py-6 text-center text-xs text-fg-3">No leads</p>}

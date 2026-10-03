@@ -1,0 +1,69 @@
+# Render Blueprint for Worklio — a web service plus a managed Postgres database.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# First deploy checklist (see docs/DEPLOY.md):
+#   1. Create the Blueprint from this file. Fill in the variables marked `sync: false`.
+#   2. After the first successful deploy, open a Render shell on the web service and run:
+#        ADMIN_EMAIL=you@company.com ADMIN_PASSWORD='long passphrase' npx tsx scripts/create-platform-admin.ts
+#   3. Sign in at /login and open /platform to create your first company.
+
+databases:
+  - name: worklio-db
+    databaseName: worklio
+    user: worklio_owner
+    plan: basic-256mb
+    postgresMajorVersion: "16"
+    ipAllowList: []            # private network only; the web service connects over the internal URL
+
+services:
+  - type: web
+    name: worklio
+    runtime: node
+    plan: starter              # persistent disks need a paid instance
+    region: oregon             # keep identical to the database region
+    buildCommand: npm ci --include=dev && npm run build
+    # Creates the restricted `worklio_app` role (row-level security depends on it), then migrates.
+    preDeployCommand: node scripts/render-predeploy.mjs
+    startCommand: node scripts/render-start.mjs
+    healthCheckPath: /login
+    autoDeploy: true
+    disk:
+      name: worklio-files
+      mountPath: /var/data
+      sizeGB: 10
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      # Database: the owner connection is used only for migrations; the app runs as worklio_app.
+      - key: DIRECT_URL
+        fromDatabase:
+          name: worklio-db
+          property: connectionString
+      - key: APP_DB_PASSWORD
+        generateValue: true
+      # App
+      - key: APP_SECRET
+        generateValue: true
+      - key: APP_URL              # e.g. https://app.yourdomain.com (defaults to the onrender.com URL)
+        sync: false
+      # Email (use `console` only for testing — it just logs messages)
+      - key: EMAIL_PROVIDER
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        sync: false               # e.g. Your Company <no-reply@yourdomain.com> (domain verified in Resend)
+      # Files: local disk is mounted above. For S3-compatible storage set STORAGE_DRIVER=s3 and S3_* instead.
+      - key: STORAGE_DRIVER
+        value: local
+      - key: STORAGE_LOCAL_DIR
+        value: /var/data/files
+      # Payments: `manual` records payments by hand; set `stripe` plus the keys below to take cards online.
+      - key: PAYMENT_PROVIDER
+        value: manual
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

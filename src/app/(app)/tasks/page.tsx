@@ -15,6 +15,8 @@ import { listTasks } from "@/server/domain/tasks";
 import { formatDateTime } from "@/lib/format";
 import { pageCtx } from "@/server/page-context";
 
+const nowMs = () => Date.now();
+
 export const metadata: Metadata = { title: "Tasks" };
 
 export default async function TasksPage({ searchParams }: { searchParams: Promise<SP> }) {
@@ -28,7 +30,7 @@ export default async function TasksPage({ searchParams }: { searchParams: Promis
   const cust = cid && sp.new ? await getCustomer(ctx, cid).catch(() => null) : null;
   const manage = can(ctx, "tasks.manage");
   type Row = (typeof page.rows)[number];
-  const now = Date.now();
+  const now = nowMs();
   const cols: Column<Row>[] = [
     { key: "title", header: "Task", fixed: true, cell: (r) => <div><div className={r.status === "DONE" ? "text-fg-3 line-through" : "font-medium"}>{r.title}</div>{r.description && <div className="line-clamp-1 text-xs text-fg-3">{r.description}</div>}</div> },
     { key: "link", header: "Related", from: "md", cell: (r) => r.customer ? <Link href={`/customers/${r.customer.id}`} className="hover:text-primary hover:underline">{r.customer.displayName}</Link> : r.job ? <Link href={`/jobs/${r.job.id}`} className="font-mono text-xs hover:text-primary">{r.job.number}</Link> : r.invoice ? <Link href={`/invoices/${r.invoice.id}`} className="font-mono text-xs hover:text-primary">{r.invoice.number}</Link> : r.quote ? <Link href={`/quotes/${r.quote.id}`} className="font-mono text-xs hover:text-primary">{r.quote.number}</Link> : <span className="text-fg-3">—</span> },

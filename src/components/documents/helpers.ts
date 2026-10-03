@@ -1,6 +1,9 @@
 import type { EditorInitial, EditorLine, EditorOption } from "./editor";
-import { blankLine, newKey } from "./editor";
 import { centsToInput } from "@/lib/money";
+
+let seq = 0;
+export const newKey = () => `k${Date.now().toString(36)}${seq++}`;
+export const blankLine = (): EditorLine => ({ key: newKey(), pricebookItemId: null, kind: "SERVICE", name: "", description: "", quantity: "1", unitPrice: "", discountType: "NONE", discountValue: "", taxable: true });
 
 type DbLine = { pricebookItemId: string | null; kind: string; name: string; description: string | null; quantity: { toString(): string }; unitPriceCents: number; discountType: "NONE" | "PERCENT" | "FIXED"; discountValue: number; taxable: boolean };
 

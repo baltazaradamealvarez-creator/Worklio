@@ -12,7 +12,10 @@ const FormErrors = createContext<Record<string, string> | undefined>(undefined);
 const DialogContext = createContext<{ close: () => void } | null>(null);
 /** Lets any client component inside a <Dialog> close it. */
 export const useDialog = () => useContext(DialogContext);
-export const useFieldError = (name?: string) => (name ? useContext(FormErrors)?.[name] : undefined);
+export function useFieldError(name?: string) {
+  const errors = useContext(FormErrors);
+  return name ? errors?.[name] : undefined;
+}
 
 export function SubmitButton({ children, variant = "primary", size = "md", pendingLabel, className, ...props }: ComponentProps<"button"> & { variant?: ButtonVariant; size?: "sm" | "md" | "lg"; pendingLabel?: string }) {
   const { pending } = useFormStatus();

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { FilterBar } from "@/components/data/client";
 import { DataTable, type Column, type SP } from "@/components/data/data-table";
-import { PAYMENT_METHODS } from "@/components/documents/invoice-actions";
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 import { Icon } from "@/components/ui/icon";
 import { Badge, EmptyState, LinkButton, Money, PageHeader } from "@/components/ui/primitives";
 import { can } from "@/server/auth/context";

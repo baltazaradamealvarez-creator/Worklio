@@ -7,11 +7,13 @@ import type { loadPublicQuote } from "@/server/domain/quotes";
 import type { loadPublicInvoice } from "@/server/domain/invoices";
 import { StatusBadge } from "@/components/ui/primitives";
 
+const nowMs = () => Date.now();
+
 export function PublicShell({ brand, children, back }: { brand: { companyName: string; brandColor: string; logoUrl: string | null; phone: string | null; email: string | null; address: string | null; website: string | null }; children: ReactNode; back?: { href: string; label: string } }) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-6 sm:py-10">
       <header className="mb-6 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">{brand.logoUrl ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={brand.logoUrl} alt={brand.companyName} className="h-10 max-w-[180px] object-contain" /> : <span className="flex size-10 items-center justify-center rounded-lg text-lg font-bold text-white" style={{ background: brand.brandColor }}>{brand.companyName[0]}</span>}<span className="text-base font-semibold">{brand.companyName}</span></div>
+        <div className="flex items-center gap-3">{brand.logoUrl ?   <img src={brand.logoUrl} alt={brand.companyName} className="h-10 max-w-[180px] object-contain" /> : <span className="flex size-10 items-center justify-center rounded-lg text-lg font-bold text-white" style={{ background: brand.brandColor }}>{brand.companyName[0]}</span>}<span className="text-base font-semibold">{brand.companyName}</span></div>
         {back && <Link href={back.href} className="text-[13px] font-medium" style={{ color: brand.brandColor }}>← {back.label}</Link>}
       </header>
       {children}
@@ -66,7 +68,7 @@ type PI = NonNullable<Awaited<ReturnType<typeof loadPublicInvoice>>>;
 export function InvoiceBody({ data }: { data: PI }) {
   const { invoice: i, currency, timezone, footer } = data;
   const fmt = (c: number) => formatMoney(c, currency);
-  const overdue = ["OPEN", "SENT", "VIEWED", "PARTIALLY_PAID"].includes(i.status) && i.balanceCents > 0 && i.dueDate.getTime() + 86_400_000 <= Date.now();
+  const overdue = ["OPEN", "SENT", "VIEWED", "PARTIALLY_PAID"].includes(i.status) && i.balanceCents > 0 && i.dueDate.getTime() + 86_400_000 <= nowMs();
   return (
     <article className="space-y-5">
       <section className="rounded-xl border border-line bg-surface p-5 shadow-sm">

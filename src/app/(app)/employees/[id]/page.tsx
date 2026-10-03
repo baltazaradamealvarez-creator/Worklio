@@ -64,7 +64,7 @@ export default async function EmployeePage({ params, searchParams }: { params: P
           <Card title="Weekly availability" description="Recurring working hours. Dispatch warns when scheduling outside these windows.">
             <div className="space-y-2">{DAYS.map((name, d) => {
               const w = e.availabilities.find((a) => a.weekday === d);
-              return <div key={d} className="flex flex-wrap items-center gap-3 text-[13px]"><label className="flex w-32 items-center gap-2"><input type="checkbox" name={`on${d}`} defaultChecked={!!w} disabled={!manage} className="h-4 w-4 rounded border-line-strong accent-primary" />{name}</label><Input name={`start${d}`} type="time" defaultValue={hhmm(w?.startMinute ?? 480)} disabled={!manage} className="w-28" /><span className="text-fg-3">to</span><Input name={`end${d}`} type="time" defaultValue={hhmm(w?.endMinute ?? 1020)} disabled={!manage} className="w-28" /></div>;
+              return <div key={d} className="flex flex-wrap items-center gap-3 text-[13px]"><label className="flex w-32 items-center gap-2"><input type="checkbox" name={`on${d}`} defaultChecked={!!w} disabled={!manage} className="h-4 w-4 rounded border-line-strong accent-primary" />{name}</label><Input name={`start${d}`} type="time" defaultValue={hhmm(w?.startMinute ?? 480)} disabled={!manage} className="w-32" /><span className="text-fg-3">to</span><Input name={`end${d}`} type="time" defaultValue={hhmm(w?.endMinute ?? 1020)} disabled={!manage} className="w-32" /></div>;
             })}</div>
           </Card>
           {manage && <div className="flex justify-end"><SubmitButton>Save availability</SubmitButton></div>}

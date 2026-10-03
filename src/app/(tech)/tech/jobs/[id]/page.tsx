@@ -70,7 +70,7 @@ export default async function TechJob({ params }: { params: Promise<{ id: string
       </Section>
 
       {can(ctx, "files.upload") && !finished && <Section title="Photos" count={photos.length}>
-        {photos.length > 0 && <ul className="mb-3 grid grid-cols-3 gap-2">{photos.filter((p) => p.mimeType.startsWith("image/")).map((p) => <li key={p.id} className="relative aspect-square overflow-hidden rounded-lg bg-surface-2">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={`/api/files/${p.id}`} alt={p.caption ?? p.filename} loading="lazy" className="size-full object-cover" /><span className="absolute bottom-0 left-0 rounded-tr bg-black/60 px-1.5 text-[10px] font-semibold text-white">{p.kind === "BEFORE_PHOTO" ? "Before" : p.kind === "AFTER_PHOTO" ? "After" : "During"}</span></li>)}</ul>}
+        {photos.length > 0 && <ul className="mb-3 grid grid-cols-3 gap-2">{photos.filter((p) => p.mimeType.startsWith("image/")).map((p) => <li key={p.id} className="relative aspect-square overflow-hidden rounded-lg bg-surface-2">{ }<img src={`/api/files/${p.id}`} alt={p.caption ?? p.filename} loading="lazy" className="size-full object-cover" /><span className="absolute bottom-0 left-0 rounded-tr bg-black/60 px-1.5 text-[10px] font-semibold text-white">{p.kind === "BEFORE_PHOTO" ? "Before" : p.kind === "AFTER_PHOTO" ? "After" : "During"}</span></li>)}</ul>}
         <PhotoUpload jobId={id} /></Section>}
 
       {can(ctx, "notes.create") && !finished && <Section title="Add a note"><QuickNote jobId={id} /></Section>}

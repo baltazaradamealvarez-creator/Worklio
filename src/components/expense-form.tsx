@@ -3,7 +3,7 @@ import { Input, Select } from "@/components/ui/primitives";
 import { centsToInput } from "@/lib/money";
 import { humanize } from "@/lib/format";
 import { EXPENSE_CATEGORIES } from "@/server/domain/expenses";
-import { PAYMENT_METHODS } from "@/components/documents/invoice-actions";
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 
 type E = Partial<{ vendorId: string | null; category: string; amountCents: number; expenseDate: Date; description: string; paymentMethod: string; reference: string | null; jobId: string | null }>;
 

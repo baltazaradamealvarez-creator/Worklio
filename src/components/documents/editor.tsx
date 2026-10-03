@@ -10,6 +10,7 @@ import { CustomerLocationPicker } from "@/components/pickers";
 import { Spinner } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icon";
 import { Button, Card, Checkbox, Input, Select, Textarea } from "@/components/ui/primitives";
+import { blankLine, newKey } from "./helpers";
 import { computeDocument, formatMoney, parseMoney, type DiscountType } from "@/lib/money";
 
 export interface EditorLine {
@@ -47,9 +48,6 @@ export interface EditorInitial {
   options: EditorOption[];
 }
 
-let seq = 0;
-export const newKey = () => `k${Date.now().toString(36)}${seq++}`;
-export const blankLine = (): EditorLine => ({ key: newKey(), pricebookItemId: null, kind: "SERVICE", name: "", description: "", quantity: "1", unitPrice: "", discountType: "NONE", discountValue: "", taxable: true });
 
 const toBpOrCents = (type: DiscountType, v: string) => {
   if (type === "NONE" || !v.trim()) return 0;
@@ -150,9 +148,9 @@ export function DocumentEditor({ mode, initial, currency, taxExemptDefault, sale
         <Card title="Pricing" className="lg:col-span-1">
           <div className="space-y-3">
             <label className="block space-y-1"><span className="text-[12.5px] font-medium text-fg-2">Tax rate (%)</span><Input inputMode="decimal" value={taxExempt ? "0" : s.taxRate} disabled={taxExempt} onChange={(e) => set("taxRate", e.target.value)} />{taxExempt && <span className="text-xs text-fg-3">Customer is tax exempt.</span>}</label>
-            <div className="space-y-1"><span className="block text-[12.5px] font-medium text-fg-2">Document discount</span><div className="flex gap-2"><Select aria-label="Discount type" value={s.discountType} onChange={(e) => set("discountType", e.target.value as DiscountType)} className="w-20"><option value="NONE">None</option><option value="PERCENT">%</option><option value="FIXED">$</option></Select>{s.discountType !== "NONE" && <Input aria-label="Discount value" inputMode="decimal" value={s.discountValue} onChange={(e) => set("discountValue", e.target.value)} />}</div></div>
+            <div className="space-y-1"><span className="block text-[12.5px] font-medium text-fg-2">Document discount</span><div className="flex gap-2"><Select aria-label="Discount type" value={s.discountType} onChange={(e) => set("discountType", e.target.value as DiscountType)} className="w-28"><option value="NONE">None</option><option value="PERCENT">%</option><option value="FIXED">$</option></Select>{s.discountType !== "NONE" && <Input aria-label="Discount value" inputMode="decimal" value={s.discountValue} onChange={(e) => set("discountValue", e.target.value)} />}</div></div>
             {multi ? (
-              <div className="space-y-1"><span className="block text-[12.5px] font-medium text-fg-2">Deposit required</span><div className="flex gap-2"><Select aria-label="Deposit type" value={s.depositType} onChange={(e) => set("depositType", e.target.value as DiscountType)} className="w-20"><option value="NONE">None</option><option value="PERCENT">%</option><option value="FIXED">$</option></Select>{s.depositType !== "NONE" && <Input aria-label="Deposit value" inputMode="decimal" value={s.depositValue} onChange={(e) => set("depositValue", e.target.value)} />}</div></div>
+              <div className="space-y-1"><span className="block text-[12.5px] font-medium text-fg-2">Deposit required</span><div className="flex gap-2"><Select aria-label="Deposit type" value={s.depositType} onChange={(e) => set("depositType", e.target.value as DiscountType)} className="w-28"><option value="NONE">None</option><option value="PERCENT">%</option><option value="FIXED">$</option></Select>{s.depositType !== "NONE" && <Input aria-label="Deposit value" inputMode="decimal" value={s.depositValue} onChange={(e) => set("depositValue", e.target.value)} />}</div></div>
             ) : (
               <label className="block space-y-1"><span className="text-[12.5px] font-medium text-fg-2">Deposit required ($)</span><Input inputMode="decimal" value={s.depositValue} onChange={(e) => set("depositValue", e.target.value)} placeholder="0.00" /></label>
             )}

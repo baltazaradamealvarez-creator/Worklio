@@ -104,7 +104,6 @@ function SearchPalette() {
   }, [q, runSearch]);
 
   const go = (h: SearchHit) => { setOpen(false); router.push(h.href); };
-  let lastKind = "";
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} className="flex h-8 w-full max-w-sm items-center gap-2 rounded-md border border-line bg-surface-2/60 px-2.5 text-[13px] text-fg-3 hover:border-line-strong">
@@ -133,8 +132,7 @@ function SearchPalette() {
               {q.trim().length < 2 && <li className="px-4 py-6 text-center text-[13px] text-fg-3">Type at least 2 characters. Results respect your permissions.</li>}
               {q.trim().length >= 2 && !searching && hits.length === 0 && <li className="px-4 py-6 text-center text-[13px] text-fg-3">No matches for “{q}”.</li>}
               {hits.map((h, i) => {
-                const header = h.kind !== lastKind;
-                lastKind = h.kind;
+                const header = i === 0 || hits[i - 1]!.kind !== h.kind;
                 return (
                   <li key={`${h.kind}-${h.id}`} role="option" aria-selected={i === idx}>
                     {header && <div className="px-4 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-fg-3">{KIND_LABEL[h.kind]}</div>}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { DocumentEditor, newKey } from "@/components/documents/editor";
-import { dateInput, discountToInput, toEditorLine } from "@/components/documents/helpers";
+import { DocumentEditor } from "@/components/documents/editor";
+import { dateInput, discountToInput, newKey, toEditorLine } from "@/components/documents/helpers";
 import { PageHeader } from "@/components/ui/primitives";
 import { requirePermission } from "@/server/auth/context";
 import { getInvoice } from "@/server/domain/invoices";

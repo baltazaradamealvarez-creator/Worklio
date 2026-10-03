@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { DocumentEditor } from "@/components/documents/editor";
 import { dateInput, discountToInput, toEditorLine } from "@/components/documents/helpers";
-import { newKey } from "@/components/documents/editor";
+import { newKey } from "@/components/documents/helpers";
 import { PageHeader } from "@/components/ui/primitives";
 import { requirePermission } from "@/server/auth/context";
 import { listAssignableEmployees } from "@/server/domain/employees";

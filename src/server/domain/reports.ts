@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { requirePermission, can, type Ctx } from "@/server/auth/context";
 import { notFound } from "@/server/errors";
-import { addDays, localDateKey } from "@/lib/format";
+import { addDays, localDateKey, zonedToUtc } from "@/lib/format";
 import { tenantTimezone } from "./scheduling";
 
 /**
@@ -126,6 +126,7 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
   requirePermission(ctx, def.permission);
   const tenantId = ctx.tenantId;
   const tz = await tenantTimezone(ctx.db);
+  const T = (dateKey: string) => zonedToUtc(dateKey, 0, tz); // timestamp columns: day boundaries in the company's timezone
   const db = ctx.db;
 
   switch (key) {
@@ -136,7 +137,7 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
       const collected = await db.$queryRaw<{ m: string; collected: number }[]>`
         SELECT to_char(date_trunc('month', p."receivedAt" AT TIME ZONE 'UTC' AT TIME ZONE ${tz}), 'YYYY-MM') AS m, SUM(p."amountCents")::float8 AS collected
         FROM payments p JOIN invoices i ON i.id = p."invoiceId" JOIN customers c ON c.id = i."customerId" LEFT JOIN customer_locations l ON l.id = i."locationId" LEFT JOIN jobs j ON j.id = i."jobId"
-        WHERE p."tenantId" = ${tenantId} AND p.status = 'SUCCEEDED' AND p."receivedAt" >= ${D(f.from)} AND p."receivedAt" < ${D(addDays(f.to, 1))}
+        WHERE p."tenantId" = ${tenantId} AND p.status = 'SUCCEEDED' AND p."receivedAt" >= ${T(f.from)} AND p."receivedAt" < ${T(addDays(f.to, 1))}
         ${f.customer ? Prisma.sql`AND i."customerId" = ${f.customer}` : Prisma.empty} ${f.jobType ? Prisma.sql`AND j."jobTypeId" = ${f.jobType}` : Prisma.empty}
         ${f.city ? Prisma.sql`AND lower(l.city) = lower(${f.city})` : Prisma.empty} ${f.state ? Prisma.sql`AND lower(l.state) = lower(${f.state})` : Prisma.empty}
         ${f.postalCode ? Prisma.sql`AND l."postalCode" LIKE ${f.postalCode + "%"}` : Prisma.empty} ${f.tag ? Prisma.sql`AND ${f.tag} = ANY (c.tags)` : Prisma.empty}
@@ -202,7 +203,7 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
     }
 
     case "jobs": {
-      const conds: Prisma.Sql[] = [Prisma.sql`j."tenantId" = ${tenantId}`, Prisma.sql`j."deletedAt" IS NULL`, Prisma.sql`COALESCE(j."actualEnd", j."scheduledStart", j."createdAt") >= ${D(f.from)}`, Prisma.sql`COALESCE(j."actualEnd", j."scheduledStart", j."createdAt") < ${D(addDays(f.to, 1))}`];
+      const conds: Prisma.Sql[] = [Prisma.sql`j."tenantId" = ${tenantId}`, Prisma.sql`j."deletedAt" IS NULL`, Prisma.sql`COALESCE(j."actualEnd", j."scheduledStart", j."createdAt") >= ${T(f.from)}`, Prisma.sql`COALESCE(j."actualEnd", j."scheduledStart", j."createdAt") < ${T(addDays(f.to, 1))}`];
       if (f.technician) conds.push(Prisma.sql`EXISTS (SELECT 1 FROM job_assignees ja WHERE ja."jobId" = j.id AND ja."employeeId" = ${f.technician})`);
       if (f.customer) conds.push(Prisma.sql`j."customerId" = ${f.customer}`);
       if (f.jobType) conds.push(Prisma.sql`j."jobTypeId" = ${f.jobType}`);
@@ -266,7 +267,7 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
     }
 
     case "lead_sources": {
-      const conds: Prisma.Sql[] = [Prisma.sql`ld."tenantId" = ${tenantId}`, Prisma.sql`ld."deletedAt" IS NULL`, Prisma.sql`ld."createdAt" >= ${D(f.from)}`, Prisma.sql`ld."createdAt" < ${D(addDays(f.to, 1))}`];
+      const conds: Prisma.Sql[] = [Prisma.sql`ld."tenantId" = ${tenantId}`, Prisma.sql`ld."deletedAt" IS NULL`, Prisma.sql`ld."createdAt" >= ${T(f.from)}`, Prisma.sql`ld."createdAt" < ${T(addDays(f.to, 1))}`];
       if (f.leadSource) conds.push(Prisma.sql`lower(ld.source) = lower(${f.leadSource})`);
       if (f.salesperson) conds.push(Prisma.sql`ld."assignedToId" = ${f.salesperson}`);
       if (f.city) conds.push(Prisma.sql`lower(ld.city) = lower(${f.city})`);
@@ -315,7 +316,7 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
     }
 
     case "payments": {
-      const conds: Prisma.Sql[] = [Prisma.sql`p."tenantId" = ${tenantId}`, Prisma.sql`p.status = 'SUCCEEDED'`, Prisma.sql`p."receivedAt" >= ${D(f.from)}`, Prisma.sql`p."receivedAt" < ${D(addDays(f.to, 1))}`];
+      const conds: Prisma.Sql[] = [Prisma.sql`p."tenantId" = ${tenantId}`, Prisma.sql`p.status = 'SUCCEEDED'`, Prisma.sql`p."receivedAt" >= ${T(f.from)}`, Prisma.sql`p."receivedAt" < ${T(addDays(f.to, 1))}`];
       if (f.customer) conds.push(Prisma.sql`p."customerId" = ${f.customer}`);
       if (f.city || f.state || f.postalCode || f.tag) {
         if (f.city) conds.push(Prisma.sql`lower(l.city) = lower(${f.city})`);
@@ -357,12 +358,12 @@ export async function runReport(ctx: Ctx, key: ReportKey, f: ReportFilters): Pro
     }
 
     case "new_customers": {
-      const conds: Prisma.Sql[] = [Prisma.sql`c."tenantId" = ${tenantId}`, Prisma.sql`c."createdAt" >= ${D(f.from)}`, Prisma.sql`c."createdAt" < ${D(addDays(f.to, 1))}`];
+      const conds: Prisma.Sql[] = [Prisma.sql`c."tenantId" = ${tenantId}`, Prisma.sql`c."createdAt" >= ${T(f.from)}`, Prisma.sql`c."createdAt" < ${T(addDays(f.to, 1))}`];
       if (f.tag) conds.push(Prisma.sql`${f.tag} = ANY (c.tags)`);
       if (f.leadSource) conds.push(Prisma.sql`lower(c."referralSource") = lower(${f.leadSource})`);
       if (f.city || f.state || f.postalCode) conds.push(Prisma.sql`EXISTS (SELECT 1 FROM customer_locations l WHERE l."customerId" = c.id ${f.city ? Prisma.sql`AND lower(l.city) = lower(${f.city})` : Prisma.empty} ${f.state ? Prisma.sql`AND lower(l.state) = lower(${f.state})` : Prisma.empty} ${f.postalCode ? Prisma.sql`AND l."postalCode" LIKE ${f.postalCode + "%"}` : Prisma.empty})`);
       const r = await db.$queryRaw<{ m: string; count: number; commercial: number }[]>`
-        SELECT to_char(date_trunc('month', c."createdAt"), 'YYYY-MM') AS m, COUNT(*)::int AS count, COUNT(*) FILTER (WHERE c.type = 'COMMERCIAL')::int AS commercial
+        SELECT to_char(date_trunc('month', c."createdAt" AT TIME ZONE 'UTC' AT TIME ZONE ${tz}), 'YYYY-MM') AS m, COUNT(*)::int AS count, COUNT(*) FILTER (WHERE c.type = 'COMMERCIAL')::int AS commercial
         FROM customers c WHERE ${Prisma.join(conds, " AND ")} GROUP BY 1`;
       const by = new Map(r.map((x) => [x.m, x]));
       const rows = monthsBetween(f.from, f.to).map((m) => ({ month: m, count: by.get(m)?.count ?? 0, commercial: by.get(m)?.commercial ?? 0, residential: (by.get(m)?.count ?? 0) - (by.get(m)?.commercial ?? 0) }));
@@ -428,14 +429,16 @@ export function reportToCsv(r: ReportResult): string {
 export async function financialOverview(ctx: Ctx, f: ReportFilters) {
   requirePermission(ctx, "financials.view");
   const tenantId = ctx.tenantId;
+  const tz = await tenantTimezone(ctx.db);
+  const T = (dateKey: string) => zonedToUtc(dateKey, 0, tz);
   const [inv, coll, open, past, quotesOut, quotesApproved, jobsDone, expenses] = await Promise.all([
     ctx.db.invoice.aggregate({ where: { status: { notIn: ["DRAFT", "VOID"] }, issueDate: { gte: D(f.from), lte: D(f.to) } }, _sum: { totalCents: true }, _count: true }),
-    ctx.db.payment.aggregate({ where: { status: "SUCCEEDED", receivedAt: { gte: D(f.from), lt: D(addDays(f.to, 1)) } }, _sum: { amountCents: true } }),
+    ctx.db.payment.aggregate({ where: { status: "SUCCEEDED", receivedAt: { gte: T(f.from), lt: T(addDays(f.to, 1)) } }, _sum: { amountCents: true } }),
     ctx.db.invoice.aggregate({ where: { status: { in: ["OPEN", "SENT", "VIEWED", "PARTIALLY_PAID"] }, balanceCents: { gt: 0 } }, _sum: { balanceCents: true }, _count: true }),
     ctx.db.invoice.aggregate({ where: { status: { in: ["OPEN", "SENT", "VIEWED", "PARTIALLY_PAID"] }, balanceCents: { gt: 0 }, dueDate: { lt: new Date(`${localDateKey(new Date(), await tenantTimezone(ctx.db))}T00:00:00.000Z`) } }, _sum: { balanceCents: true }, _count: true }),
     ctx.db.quote.aggregate({ where: { deletedAt: null, status: { in: ["SENT", "VIEWED"] } }, _sum: { totalCents: true }, _count: true }),
-    ctx.db.quote.aggregate({ where: { deletedAt: null, status: { in: ["APPROVED", "CONVERTED"] }, approvedAt: { gte: D(f.from), lt: D(addDays(f.to, 1)) } }, _sum: { totalCents: true }, _count: true }),
-    ctx.db.job.count({ where: { deletedAt: null, status: "COMPLETED", actualEnd: { gte: D(f.from), lt: D(addDays(f.to, 1)) } } }),
+    ctx.db.quote.aggregate({ where: { deletedAt: null, status: { in: ["APPROVED", "CONVERTED"] }, approvedAt: { gte: T(f.from), lt: T(addDays(f.to, 1)) } }, _sum: { totalCents: true }, _count: true }),
+    ctx.db.job.count({ where: { deletedAt: null, status: "COMPLETED", actualEnd: { gte: T(f.from), lt: T(addDays(f.to, 1)) } } }),
     can(ctx, "expenses.view") ? ctx.db.expense.aggregate({ where: { deletedAt: null, expenseDate: { gte: D(f.from), lte: D(f.to) } }, _sum: { amountCents: true } }) : null,
   ]);
   const revenue = inv._sum.totalCents ?? 0;

@@ -419,9 +419,9 @@ async function seedComfortAir(admin: { userId: string; name: string }) {
 
   // ── Expenses (monthly history) ──
   const exp: [string, string, number, number, string, string][] = [
-    ["Ferguson HVAC Supply", "PARTS", 1840, 96, "Monthly parts order", "CREDIT_CARD"], ["Carrier Enterprise", "EQUIPMENT", 6100, 70, "Condenser + coil (Fitzgerald)", "ACH"], ["Shell Fleet Fuel", "FUEL", 912, 64, "Fleet fuel — month", "CREDIT_CARD"],
+    ["Ferguson HVAC Supply", "PARTS", 1840, 96, "Monthly parts order", "CREDIT_CARD"], ["Carrier Enterprise", "EQUIPMENT", 2200, 70, "Condenser + coil (Fitzgerald)", "ACH"], ["Shell Fleet Fuel", "FUEL", 912, 64, "Fleet fuel — month", "CREDIT_CARD"],
     ["Ferguson HVAC Supply", "PARTS", 2210, 66, "Parts order", "CREDIT_CARD"], ["Johnstone Supply", "PARTS", 640, 51, "Refrigerant & filters", "CREDIT_CARD"], ["Shell Fleet Fuel", "FUEL", 1004, 34, "Fleet fuel — month", "CREDIT_CARD"],
-    ["Carrier Enterprise", "EQUIPMENT", 3350, 41, "96% furnace (Brandt)", "ACH"], ["Grainger", "TOOLS", 489, 28, "Manifold gauges & torque set", "CREDIT_CARD"], ["Ferguson HVAC Supply", "PARTS", 1575, 22, "Parts order", "CREDIT_CARD"],
+    ["Carrier Enterprise", "EQUIPMENT", 1800, 41, "96% furnace (Brandt)", "ACH"], ["Grainger", "TOOLS", 489, 28, "Manifold gauges & torque set", "CREDIT_CARD"], ["Ferguson HVAC Supply", "PARTS", 1575, 22, "Parts order", "CREDIT_CARD"],
     ["Shell Fleet Fuel", "FUEL", 987, 5, "Fleet fuel — month", "CREDIT_CARD"], ["Johnstone Supply", "PARTS", 410, 12, "Capacitors & contactors", "CREDIT_CARD"],
   ];
   for (const [v, cat, amt, d, desc, pm] of exp) await saveExpense(helen, null, { vendorId: vendors.get(v), category: cat, amount: String(amt), expenseDate: iso(ago(d)), description: desc, paymentMethod: pm });

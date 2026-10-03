@@ -45,7 +45,7 @@ export function FilesPanel({ entityType, entityId, files, canUpload, canDelete, 
               {images.map((f) => (
                 <li key={f.id} className="group overflow-hidden rounded-lg border border-line bg-surface">
                   <a href={`/api/files/${f.id}`} target="_blank" rel="noopener noreferrer" className="block aspect-[4/3] bg-surface-2">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    { }
                     <img src={`/api/files/${f.id}`} alt={f.caption ?? f.filename} loading="lazy" className="size-full object-cover" />
                   </a>
                   <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">

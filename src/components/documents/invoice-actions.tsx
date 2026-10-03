@@ -5,8 +5,8 @@ import { ActionForm, Dialog, FField, SubmitButton } from "@/components/ui/client
 import { Button, Checkbox, Input, Select, Textarea } from "@/components/ui/primitives";
 import { Icon } from "@/components/ui/icon";
 import { centsToInput } from "@/lib/money";
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 
-export const PAYMENT_METHODS = [["CASH", "Cash"], ["CHECK", "Check"], ["CREDIT_CARD", "Credit card"], ["ACH", "ACH / bank transfer"], ["EXTERNAL", "External processor"], ["FINANCING", "Financing"], ["MANUAL", "Manual adjustment"], ["OTHER", "Other"]] as const;
 
 export function PaymentForm({ invoiceId, balanceCents, depositCents }: { invoiceId: string; balanceCents: number; depositCents?: number }) {
   return (
