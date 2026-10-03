@@ -334,13 +334,15 @@ export async function resetPassword(token: string, password: string): Promise<vo
   await destroyAllSessions(rec.userId);
 }
 
-export async function changeOwnPassword(ctx: Ctx, current: string, next: string): Promise<void> {
+export async function changeOwnPassword(ctx: Ctx, current: string, next: string, keepSessionId?: string): Promise<void> {
   const weak = validatePasswordStrength(next);
   if (weak) throw new AppError("VALIDATION", weak, { next: weak });
   const db = platformDb();
   const user = await db.user.findUnique({ where: { id: ctx.userId } });
   if (!user || !(await verifyPassword(current, user.passwordHash))) throw new AppError("VALIDATION", "Current password is incorrect.", { current: "Incorrect password" });
   await db.user.update({ where: { id: user.id }, data: { passwordHash: await hashPassword(next) } });
+  // Sign out every other device; keep the session that made the change.
+  await db.session.deleteMany({ where: { userId: user.id, ...(keepSessionId ? { id: { not: keepSessionId } } : {}) } });
   await audit(ctx, "auth.password_changed", "User", user.id);
 }
 
