@@ -4,15 +4,14 @@ import { createCompanyAction } from "@/app/actions/platform";
 import { ActionForm, Dialog, FField, SubmitButton } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icon";
 import { Badge, Button, EmptyState, Input, PageHeader, Select, Stat, StatusBadge } from "@/components/ui/primitives";
-import { listTenants, platformMetrics } from "@/server/domain/tenants";
-import { platformDb } from "@/server/db";
+import { listPlans, listTenants, platformMetrics } from "@/server/domain/tenants";
 import { formatBytes, formatDateOnly, relativeTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Companies · Platform" };
 
 export default async function PlatformHome({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
   const sp = await searchParams;
-  const [tenants, m, plans] = await Promise.all([listTenants({ q: sp.q, status: sp.status }), platformMetrics(), platformDb().plan.findMany({ where: { isActive: true }, orderBy: { priceMonthlyCents: "asc" } })]);
+  const [tenants, m, plans] = await Promise.all([listTenants({ q: sp.q, status: sp.status }), platformMetrics(), listPlans({ activeOnly: true })]);
   return (
     <>
       <PageHeader title="Companies" subtitle="Every HVAC business on Worklio. Open a company to manage its plan, access and support sessions."

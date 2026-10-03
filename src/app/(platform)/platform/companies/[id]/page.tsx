@@ -4,9 +4,8 @@ import { impersonateAction, reissueInviteAction, setStatusAction, updateSubscrip
 import { InviteLink } from "@/components/platform/invite-link";
 import { ActionForm, ConfirmAction, Dialog, FField, QuickAction, SubmitButton } from "@/components/ui/client";
 import { Badge, Button, Card, DefList, Input, Notice, PageHeader, Select, StatusBadge } from "@/components/ui/primitives";
-import { platformDb } from "@/server/db";
 import { getLimits } from "@/server/domain/limits";
-import { listTenants } from "@/server/domain/tenants";
+import { getTenantDetail, listPlans, listTenants } from "@/server/domain/tenants";
 import { formatBytes, formatDateOnly, formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Company · Platform" };
@@ -19,14 +18,11 @@ function Usage({ label, used, limit }: { label: string; used: number; limit: num
 export default async function CompanyPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ invite?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
-  const db = platformDb();
-  const [tenant, plans, limits, summary, audit, pendingOwner] = await Promise.all([
-    db.tenant.findUnique({ where: { id }, include: { subscription: { include: { plan: true } } } }),
-    db.plan.findMany({ orderBy: { priceMonthlyCents: "asc" } }),
+  const [{ tenant, audit, pendingOwner }, plans, limits, summary] = await Promise.all([
+    getTenantDetail(id),
+    listPlans(),
     getLimits(id),
     listTenants({}).then((l) => l.find((t) => t.id === id)),
-    db.auditLog.findMany({ where: { tenantId: id, OR: [{ action: { startsWith: "platform." } }, { impersonatorUserId: { not: null } }] }, orderBy: { createdAt: "desc" }, take: 15 }),
-    db.invitation.findFirst({ where: { tenantId: id, role: { key: "OWNER" }, acceptedAt: null, revokedAt: null }, orderBy: { createdAt: "desc" } }),
   ]);
   if (!tenant || !summary) notFound();
   const sub = tenant.subscription;

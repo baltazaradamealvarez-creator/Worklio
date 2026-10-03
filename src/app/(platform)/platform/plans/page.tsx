@@ -3,7 +3,7 @@ import { savePlanAction } from "@/app/actions/platform";
 import { ActionForm, Dialog, FField, SubmitButton } from "@/components/ui/client";
 import { Icon } from "@/components/ui/icon";
 import { Badge, Button, Card, Input, PageHeader } from "@/components/ui/primitives";
-import { platformDb } from "@/server/db";
+import { listPlans } from "@/server/domain/tenants";
 
 export const metadata: Metadata = { title: "Plans · Platform" };
 
@@ -31,7 +31,7 @@ function PlanDialog({ p, trigger }: { p?: P; trigger: React.ReactNode }) {
 }
 
 export default async function PlansPage() {
-  const plans = await platformDb().plan.findMany({ orderBy: { priceMonthlyCents: "asc" }, include: { _count: { select: { subscriptions: true } } } });
+  const plans = await listPlans();
   return (
     <>
       <PageHeader title="Plans" subtitle="Limits are enforced server-side when companies add users, technicians, customers and files." actions={<PlanDialog trigger={<Button variant="primary"><Icon name="plus" size={14} /> New plan</Button>} />} />

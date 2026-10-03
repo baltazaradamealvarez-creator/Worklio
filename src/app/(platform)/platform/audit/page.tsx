@@ -1,17 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Badge, PageHeader } from "@/components/ui/primitives";
-import { platformDb } from "@/server/db";
+import { listPlatformAudit } from "@/server/domain/tenants";
 import { formatDateTime } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Audit log · Platform" };
-const PAGE = 100;
 
 export default async function PlatformAudit({ searchParams }: { searchParams: Promise<{ page?: string; q?: string }> }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
-  const where = { tenantId: null, ...(sp.q ? { OR: [{ action: { contains: sp.q, mode: "insensitive" as const } }, { actorName: { contains: sp.q, mode: "insensitive" as const } }] } : {}) };
-  const [rows, total] = await Promise.all([platformDb().auditLog.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: PAGE, skip: (page - 1) * PAGE }), platformDb().auditLog.count({ where })]);
+  const { rows, total, pageSize: PAGE } = await listPlatformAudit({ q: sp.q, page });
   return (
     <>
       <PageHeader title="Platform audit log" subtitle="Append-only record of platform-level actions: company creation, suspension, plan changes and support sessions." />

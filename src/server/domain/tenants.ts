@@ -375,3 +375,31 @@ export async function platformMetrics() {
   ]);
   return { tenants, suspended, users, customers, jobs, storageBytes: storage._sum.sizeBytes ?? 0, trialing };
 }
+
+// ─── Platform admin read models (pages never touch the database layer directly) ───────────
+
+export async function listPlans(opts: { activeOnly?: boolean } = {}) {
+  return platformDb().plan.findMany({
+    where: opts.activeOnly ? { isActive: true } : {},
+    orderBy: { priceMonthlyCents: "asc" },
+    include: { _count: { select: { subscriptions: true } } },
+  });
+}
+
+export async function getTenantDetail(tenantId: string) {
+  const db = platformDb();
+  const [tenant, audit, pendingOwner] = await Promise.all([
+    db.tenant.findUnique({ where: { id: tenantId }, include: { subscription: { include: { plan: true } } } }),
+    db.auditLog.findMany({ where: { tenantId, OR: [{ action: { startsWith: "platform." } }, { impersonatorUserId: { not: null } }] }, orderBy: { createdAt: "desc" }, take: 15 }),
+    db.invitation.findFirst({ where: { tenantId, role: { key: "OWNER" }, acceptedAt: null, revokedAt: null }, orderBy: { createdAt: "desc" } }),
+  ]);
+  return { tenant, audit, pendingOwner };
+}
+
+export async function listPlatformAudit(opts: { q?: string; page: number; pageSize?: number }) {
+  const take = opts.pageSize ?? 100;
+  const where = { tenantId: null, ...(opts.q ? { OR: [{ action: { contains: opts.q, mode: "insensitive" as const } }, { actorName: { contains: opts.q, mode: "insensitive" as const } }] } : {}) };
+  const db = platformDb();
+  const [rows, total] = await Promise.all([db.auditLog.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take, skip: (opts.page - 1) * take }), db.auditLog.count({ where })]);
+  return { rows, total, pageSize: take };
+}
