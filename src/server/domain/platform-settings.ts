@@ -22,7 +22,9 @@ let cache: { at: number; value: EmailSettings } | undefined;
 export async function loadEmailSettings(): Promise<EmailSettings> {
   if (cache && Date.now() - cache.at < 15_000) return cache.value;
   const e = env();
-  let value: EmailSettings = { provider: e.EMAIL_PROVIDER, apiKey: e.RESEND_API_KEY ?? null, from: e.EMAIL_FROM, source: "environment" };
+  // A RESEND_API_KEY in the environment means "use Resend" unless EMAIL_PROVIDER was set explicitly.
+  const provider = process.env.EMAIL_PROVIDER ? e.EMAIL_PROVIDER : e.RESEND_API_KEY ? "resend" : "console";
+  let value: EmailSettings = { provider, apiKey: e.RESEND_API_KEY ?? null, from: e.EMAIL_FROM, source: "environment" };
   try {
     const row = await platformDb().platformSetting.findUnique({ where: { key: EMAIL_KEY } });
     const parsed = row ? (JSON.parse(decryptSecret(row.valueEnc) ?? "null") as { apiKey?: string; from?: string } | null) : null;
