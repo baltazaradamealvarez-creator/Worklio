@@ -6,6 +6,7 @@ import { cancelAgreement, createAgreement, renewAgreement, scheduleVisitJob, upd
 import { createTask, deleteTask, setTaskStatus, updateTask } from "@/server/domain/tasks";
 import { deleteExpense, saveExpense } from "@/server/domain/expenses";
 import { adjustStock, saveInventoryItem, saveInventoryLocation, saveVendor, transferStock } from "@/server/domain/inventory";
+import { issuePortalLink } from "@/server/domain/portal";
 import { formToObject } from "@/lib/validation";
 
 // ── Maintenance agreements ──
@@ -64,4 +65,12 @@ export async function saveLocationAction(id: string | null, fd: FormData): Promi
 }
 export async function saveVendorAction(id: string | null, fd: FormData): Promise<ActionResult> {
   return run(async () => { await saveVendor(await requireCtx(), id, formToObject(fd)); return { message: "Vendor saved" }; });
+}
+
+// ── Customer portal ──
+export async function portalLinkAction(customerId: string, send: boolean): Promise<ActionResult<{ url: string }>> {
+  return run(async () => {
+    const r = await issuePortalLink(await requireCtx(), customerId, { send });
+    return { message: send ? "Portal link emailed" : "Link created", data: r };
+  });
 }

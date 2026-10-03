@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PortalLinkDialog } from "@/components/customers/portal-link";
 import { archiveCustomerAction, addLocationAction, archiveLocationAction, restoreCustomerAction, removeContactAction, saveContactAction, updateLocationAction } from "@/app/actions/customers";
 import { LocationFields } from "@/components/customers/forms";
 import { ActionForm, ConfirmAction, Dialog, FField, SubmitButton, QuickAction, Menu } from "@/components/ui/client";
@@ -69,6 +70,7 @@ export default async function CustomerPage({ params, searchParams }: { params: P
           {can(ctx, "invoices.create") && <LinkButton href={`/invoices/new?customer=${id}`}>New invoice</LinkButton>}
           <Menu trigger={<span className="inline-flex h-8 items-center rounded-md border border-line-strong bg-surface px-2 shadow-sm hover:bg-surface-2"><Icon name="more-horizontal" size={16} /></span>}>
             {can(ctx, "customers.edit") && <Link href={`/customers/${id}/edit`} role="menuitem" className="block px-3 py-1.5 text-[13px] hover:bg-surface-2">Edit customer</Link>}
+            {can(ctx, "customers.edit") && <PortalLinkDialog customerId={id} hasEmail={!!c.email} />}
             {can(ctx, "tasks.manage") && <Link href={`/tasks?new=1&customer=${id}`} role="menuitem" className="block px-3 py-1.5 text-[13px] hover:bg-surface-2">Add task</Link>}
           </Menu>
           {can(ctx, "customers.delete") && (c.deletedAt
