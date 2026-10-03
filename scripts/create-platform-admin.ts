@@ -7,6 +7,9 @@
  * Run it once from a Render shell after the first deploy, then sign in and open /platform.
  */
 import "dotenv/config";
+
+// In a Render shell only the owner connection (DIRECT_URL) is defined; the app derives DATABASE_URL at startup.
+process.env.DATABASE_URL ||= process.env.DIRECT_URL;
 import { hashPassword, validatePasswordStrength } from "@/server/auth/password";
 import { platformDb } from "@/server/db";
 import { ensureDefaultPlans } from "@/server/domain/tenants";
