@@ -3,7 +3,7 @@ node_modules
 out
 .env
 .env.local
-storage/
+/storage/
 *.tsbuildinfo
 next-env.d.ts
 coverage
