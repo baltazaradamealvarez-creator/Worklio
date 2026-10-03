@@ -67,4 +67,15 @@ EXCEPTION WHEN insufficient_privilege THEN
   RAISE NOTICE 'Could not adjust grants for worklio_app';
 END
 $do$;`);
+
+// Optional one-time bootstrap of the first platform admin (no shell access needed).
+// Creates the admin only if none exists, so later deploys never reset the password.
+if (process.env.BOOTSTRAP_ADMIN_EMAIL && process.env.BOOTSTRAP_ADMIN_PASSWORD) {
+  console.log("→ bootstrapping platform admin");
+  const r = spawnSync("npx", ["tsx", "scripts/create-platform-admin.ts"], {
+    env: { ...env, ADMIN_EMAIL: process.env.BOOTSTRAP_ADMIN_EMAIL, ADMIN_PASSWORD: process.env.BOOTSTRAP_ADMIN_PASSWORD, ADMIN_NAME: process.env.BOOTSTRAP_ADMIN_NAME ?? "Platform Admin", ONLY_IF_NONE: "1" },
+    stdio: "inherit",
+  });
+  if (r.status !== 0) process.exit(r.status ?? 1);
+}
 console.log("✓ database ready");

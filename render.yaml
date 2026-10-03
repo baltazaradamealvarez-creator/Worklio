@@ -60,6 +60,12 @@ services:
         value: local
       - key: STORAGE_LOCAL_DIR
         value: /var/data/files
+      # First platform admin, created once on the first deploy if none exists. Choose your own values,
+      # then delete these two variables from the Render dashboard after you've signed in.
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
       # Payments: `manual` records payments by hand; set `stripe` plus the keys below to take cards online.
       - key: PAYMENT_PROVIDER
         value: manual

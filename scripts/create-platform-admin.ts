@@ -19,6 +19,11 @@ async function main() {
   const weak = validatePasswordStrength(password);
   if (weak) throw new Error(weak);
   await ensureDefaultPlans();
+  // Bootstrap mode (used by the Render pre-deploy step): never overwrite an existing admin.
+  if (process.env.ONLY_IF_NONE === "1" && (await platformDb().user.count({ where: { isPlatformAdmin: true } })) > 0) {
+    console.log("• A platform admin already exists; skipping bootstrap.");
+    return;
+  }
   const passwordHash = await hashPassword(password);
   const user = await platformDb().user.upsert({
     where: { email },

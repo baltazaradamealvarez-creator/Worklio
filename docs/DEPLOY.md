@@ -28,6 +28,12 @@ In the Render dashboard choose **New → Blueprint**, select this repository and
 
 ## 3. Create the first platform administrator
 
+**Easiest:** set `BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_ADMIN_PASSWORD` (10+ characters) in the web service's environment
+(the Blueprint prompts for them) and redeploy. The pre-deploy step creates that admin only if none exists. Once you can sign
+in, delete both variables from the dashboard.
+
+**Or from a shell:**
+
 After the first successful deploy, open a **Shell** on the web service and run:
 
 ```bash
